@@ -347,5 +347,5 @@ def page_oracolo():    return send_from_directory('static', 'oracolo.html')
 def assets(filename):  return send_from_directory('static/assets', filename)
 
 if __name__ == '__main__':
-    print("\nServer avviato → http://127.0.0.1:5000\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("\nServer avviato → http://127.0.0.1:5001\n")
+    app.run(debug=True, host='0.0.0.0', port=5001)
