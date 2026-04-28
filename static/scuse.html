@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Generatore di Scuse — SopravvivenzaAI</title>
+  <meta name="description" content="Genera all'istante una scusa lunga, dettagliata e completamente folle. Scegli il destinatario e il livello di dramma.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="page-wrapper">
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">⚡ SopravvivenzaAI</a>
+      <div id="nav-user-area"></div>
+    </div>
+  </nav>
+  <main class="container">
+    <div class="page-header">
+      <span class="badge">🎭 Generatore di Scuse</span>
+      <h1>La scusa perfetta,<br><span class="grad-cyan">in trenta secondi.</span></h1>
+      <p>Scegli il destinatario e il livello di dramma. L'IA costruisce una storia credibile (o assurda il giusto). Tu copia, incolla e sparisci.</p>
+    </div>
+    <div class="glass-panel" id="form-area">
+      <div class="form-group">
+        <label class="form-label">👤 A chi devi dare buca?</label>
+        <div class="chip-row" id="target-group">
+          <button class="chip active" data-value="il capo">🧑‍💼 Il Capo</button>
+          <button class="chip" data-value="un amico del cuore">👥 Un Amico</button>
+          <button class="chip" data-value="un appuntamento romantico">💘 Appuntamento</button>
+          <button class="chip" data-value="i parenti">👨‍👩‍👧 Parenti</button>
+          <button class="chip" data-value="il dentista">🦷 Dentista</button>
+          <button class="chip" data-value="il personal trainer">🏋️ Personal Trainer</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          🎬 Livello di Dramma
+          <span class="drama-badge" id="drama-badge">😬 Medio</span>
+        </label>
+        <input type="range" min="1" max="4" value="2" class="drama-slider" id="drama-slider">
+        <div class="drama-labels">
+          <span>😴 Basso</span><span>😬 Medio</span><span>😱 Alto</span><span>🌋 Apocalittico</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn btn-primary" id="generate-btn">🪄 Salvami la Vita</button>
+      </div>
+    </div>
+    <div class="loading-area" id="loading-area">
+      <div class="spinner"></div>
+      <p class="loading-text" id="loading-text">Costruendo il tuo alibi...</p>
+    </div>
+    <div class="result-area" id="result-area">
+      <div class="glass-panel">
+        <div class="result-header" style="color:var(--cyan);">⚡ La tua Scusa è Pronta</div>
+        <div class="result-box" id="result-text"></div>
+        <div class="result-actions">
+          <button class="btn btn-primary" id="copy-btn">📋 Copia per WhatsApp</button>
+          <button class="btn btn-ghost" id="save-btn" style="display:none;">💾 Salva</button>
+          <button class="btn btn-ghost" id="retry-btn">🔄 Rigenera</button>
+        </div>
+        <p id="save-msg" style="color:var(--green);font-size:.85rem;text-align:center;min-height:18px;margin-top:8px;"></p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">⚡ SopravvivenzaAI</span>
+        <ul class="footer-links">
+          <li><a href="/">← Torna alla Home</a></li>
+          <li><a href="/profilo">Il tuo Profilo</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">Powered by Google Gemini · I contenuti generati sono satirici e non costituiscono consigli reali.</p>
+    </div>
+  </footer>
+</div>
+<script type="module">
+import { setupChips, generate, setupCopyBtn, setupRetryBtn } from '/assets/shared.js';
+const target = setupChips('target-group');
+const dramaMap = { "1":"basso","2":"medio","3":"alto","4":"apocalittico" };
+const labelMap = { "1":"😴 Basso","2":"😬 Medio","3":"😱 Alto","4":"🌋 Apocalittico" };
+const slider = document.getElementById('drama-slider');
+const badge  = document.getElementById('drama-badge');
+const updateSlider = () => {
+  badge.textContent = labelMap[slider.value];
+  const pct = ((slider.value - 1) / 3) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+};
+slider.addEventListener('input', updateSlider);
+updateSlider();
+const phrases = [
+  "Costruendo il tuo alibi...",
+  "Calibrando il livello di assurdità...",
+  "Consultando il registro delle catastrofi plausibili...",
+  "Tessendo la trama della tua liberazione...",
+  "La scusa è in fase di cottura finale...",
+  "Analizzando le probabilità di farla franca...",
+];
+document.getElementById('generate-btn').addEventListener('click', async () => {
+  generate(
+    { tool:'scuse', target: target.getValue(), drama: dramaMap[slider.value] },
+    { phrases }
+  );
+  const me = await fetch('/api/me').then(r=>r.json());
+  if(me.logged_in) document.getElementById('save-btn').style.display = 'inline-flex';
+});
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const text = document.getElementById('result-text').textContent;
+  await fetch('/api/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tool:'scuse', contenuto: text })
+  });
+  const s = document.getElementById('save-msg');
+  s.textContent = '✅ Salvata nel tuo profilo!';
+  setTimeout(() => s.textContent = '', 3000);
+});
+setupCopyBtn('copy-btn', 'result-text');
+setupRetryBtn('retry-btn');
+</script>
+<script src="/assets/navbar-user.js"></script>
+<script src="/assets/chat-widget.js"></script>
+</body>
+</html>

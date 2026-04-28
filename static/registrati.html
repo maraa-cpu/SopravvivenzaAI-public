@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Registrati — SopravvivenzaAI</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="auth-wrapper">
+  <div class="auth-box">
+    <div class="auth-icon">✨</div>
+    <h2>Crea il tuo account</h2>
+    <p class="auth-sub">Registrati gratis per salvare le risposte, impostare le tue preferenze e chattare con un agente reale.</p>
+    <input class="auth-input" type="text"     id="name"  placeholder="Il tuo nome" autocomplete="name">
+    <input class="auth-input" type="email"    id="email" placeholder="La tua email" autocomplete="email">
+    <input class="auth-input" type="password" id="pw"    placeholder="Password (min. 6 caratteri)" autocomplete="new-password">
+    <button class="btn btn-primary btn-full" id="reg-btn">🎉 Crea Account</button>
+    <p class="auth-error" id="err"></p>
+    <p class="auth-switch">Hai già un account? <a href="/accedi">Accedi →</a></p>
+    <div style="text-align:center;margin-top:14px;">
+      <a href="/" style="color:var(--text-muted);font-size:.86rem;">← Torna al sito</a>
+    </div>
+  </div>
+</div>
+<script>
+  // Se già loggato, vai al profilo
+  fetch('/api/me').then(r=>r.json()).then(me => {
+    if(me.logged_in) window.location.href = '/profilo';
+  });
+  const btn = document.getElementById('reg-btn');
+  const err = document.getElementById('err');
+  const go = async () => {
+    err.textContent = '';
+    btn.textContent = 'Registrazione...';
+    btn.disabled = true;
+    const r = await fetch('/registrati', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name:     document.getElementById('name').value.trim(),
+        email:    document.getElementById('email').value.trim(),
+        password: document.getElementById('pw').value
+      })
+    });
+    const d = await r.json();
+    if(r.ok) {
+      window.location.href = '/profilo';
+    } else {
+      err.textContent = '❌ ' + d.error;
+    }
+    btn.textContent = '🎉 Crea Account';
+    btn.disabled = false;
+  };
+  btn.addEventListener('click', go);
+  document.addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+</script>
+</body>
+</html>

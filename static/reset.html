@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reimposta Password — SopravvivenzaAI</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="auth-wrapper">
+  <div class="auth-box">
+    <div class="auth-icon">🔒</div>
+    <h2>Nuova Password</h2>
+    <p class="auth-sub">Inserisci la tua nuova password qui sotto.</p>
+    <input class="auth-input" type="password" id="pw" placeholder="Nuova Password (min 6 caratteri)" autocomplete="new-password">
+    <button class="btn btn-primary btn-full" id="reset-btn">Salva Nuova Password</button>
+    <p class="auth-error" id="err"></p>
+    <p id="success-msg" style="color:var(--green);text-align:center;font-size:.9rem;min-height:20px;margin-top:8px;"></p>
+    <div style="text-align:center;margin-top:24px;display:none;" id="login-link">
+      <a href="/accedi" class="btn btn-ghost" style="padding:10px 20px;">Vai al Login →</a>
+    </div>
+  </div>
+</div>
+<script>
+  const btn = document.getElementById('reset-btn');
+  const err = document.getElementById('err');
+  const succ = document.getElementById('success-msg');
+  // Estrai il token dall'URL
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if(!token) {
+    err.textContent = 'Token mancante. Usa il link inviato per email.';
+    btn.disabled = true;
+  }
+  const go = async () => {
+    err.textContent = '';
+    succ.textContent = '';
+    btn.textContent = 'Salvataggio...';
+    btn.disabled = true;
+    const pw = document.getElementById('pw').value;
+    try {
+      const r = await fetch('/reset', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ token, password: pw })
+      });
+      const d = await r.json();
+      if(r.ok) {
+        succ.textContent = '✅ ' + d.message;
+        document.getElementById('pw').style.display = 'none';
+        btn.style.display = 'none';
+        document.getElementById('login-link').style.display = 'block';
+      } else {
+        err.textContent = '❌ ' + (d.error || 'Errore');
+        btn.disabled = false;
+      }
+    } catch(e) {
+      err.textContent = '❌ Errore di rete.';
+      btn.disabled = false;
+    }
+    btn.textContent = 'Salva Nuova Password';
+  };
+  btn.addEventListener('click', go);
+  document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dove Mangio Stasera? — SopravvivenzaAI</title>
+  <meta name="description" content="Non sai dove mangiare? L'IA suggerisce un posto in zona o ti aiuta a scegliere. Con mappa e ristoranti reali.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="page-wrapper">
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">⚡ SopravvivenzaAI</a>
+      <div id="nav-user-area"></div>
+    </div>
+  </nav>
+  <main class="container" style="padding-top:50px;padding-bottom:80px;">
+    <div class="page-header">
+      <span class="badge badge-pink">🍕 Consigliere di Cene</span>
+      <h1>Stasera si mangia.<br><span class="grad-pink">Ma dove?</span></h1>
+      <p>Dì all'IA con chi sei, il vibe della serata e il budget — e lei sceglierà per te. Non si accettano lamentele.</p>
+    </div>
+    <div class="glass-panel" id="form-area">
+      <div class="form-group">
+        <label class="form-label">👥 Con chi sei?</label>
+        <div class="chip-row" id="gruppo-group" style="--chip-active:var(--pink);--chip-glow:rgba(255,45,111,.3);">
+          <button class="chip active" data-value="solo/a">🧍 Solo/a</button>
+          <button class="chip" data-value="in coppia">💑 In coppia</button>
+          <button class="chip" data-value="con amici (4-6 persone)">👯 Con amici</button>
+          <button class="chip" data-value="in famiglia">👨‍👩‍👧 In famiglia</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">✨ Che serata è?</label>
+        <div class="chip-row" id="vibe-group" style="--chip-active:var(--pink);--chip-glow:rgba(255,45,111,.3);">
+          <button class="chip active" data-value="qualsiasi cosa">🎲 Sorprendimi</button>
+          <button class="chip" data-value="cucina italiana">🇮🇹 Italiana</button>
+          <button class="chip" data-value="cucina etnica o esotica">🌍 Etnica / Esotica</button>
+          <button class="chip" data-value="pizza o fast food">🍔 Pizza / Fast Food</button>
+          <button class="chip" data-value="leggera e sana">🥗 Leggera</button>
+          <button class="chip" data-value="romantica e raffinata">🕯️ Romantica</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">💸 Budget</label>
+        <div class="chip-row" id="budget-group" style="--chip-active:var(--pink);--chip-glow:rgba(255,45,111,.3);">
+          <button class="chip active" data-value="economico (sotto i 15€ a testa)">💰 Economico</button>
+          <button class="chip" data-value="medio (15–35€ a testa)">💳 Medio</button>
+          <button class="chip" data-value="alto (oltre i 35€ a testa)">💎 Alto</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn btn-pink" id="generate-btn">🍽️ Suggeriscimi qualcosa</button>
+      </div>
+    </div>
+    <div class="loading-area" id="loading-area">
+      <div class="spinner pink"></div>
+      <p class="loading-text pink" id="loading-text">Sto pensando a qualcosa di buono...</p>
+    </div>
+    <div class="result-area" id="result-area">
+      <div class="glass-panel">
+        <div class="result-header" style="color:var(--pink);">🍽️ Il consiglio dell'IA</div>
+        <div class="result-box" id="result-text"></div>
+        <div class="result-actions">
+          <button class="btn btn-pink" id="copy-btn">📋 Copia</button>
+          <button class="btn btn-ghost" id="save-btn" style="display:none;">💾 Salva</button>
+          <button class="btn btn-ghost" id="retry-btn">🔄 Altro suggerimento</button>
+        </div>
+        <p id="save-msg" style="color:var(--green);font-size:.85rem;text-align:center;min-height:18px;margin-top:8px;"></p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">⚡ SopravvivenzaAI</span>
+        <ul class="footer-links">
+          <li><a href="/">← Torna alla Home</a></li>
+          <li><a href="/profilo">Il tuo Profilo</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">Powered by Google Gemini · Ristoranti da OpenStreetMap.</p>
+    </div>
+  </footer>
+</div>
+<script>
+// ── Chip helper ────────────────────────────────
+function setupChips(groupId) {
+  let value = null;
+  const chips = document.querySelectorAll('#' + groupId + ' .chip');
+  chips.forEach(c => {
+    if(c.classList.contains('active')) value = c.dataset.value;
+    c.addEventListener('click', () => {
+      chips.forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      value = c.dataset.value;
+    });
+  });
+  return { getValue: () => value };
+}
+const gruppo = setupChips('gruppo-group');
+const vibe   = setupChips('vibe-group');
+const budget = setupChips('budget-group');
+// ── Generate ───────────────────────────────────
+const phrases = [
+  "Sto pensando a qualcosa di buono...",
+  "Consultando il repertorio culinario...",
+  "Valutando le opzioni ideali...",
+  "Quasi pronto il suggerimento...",
+];
+let lastData = null;
+document.getElementById('generate-btn').addEventListener('click', async () => {
+  lastData = { tool:'decisore', gruppo: gruppo.getValue(), vibe: vibe.getValue(), budget: budget.getValue() };
+  // Show elements
+  document.getElementById('loading-area').style.display = 'block';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('form-area').style.display = 'none';
+  let i = 0;
+  const lt = document.getElementById('loading-text');
+  lt.textContent = phrases[0];
+  const interval = setInterval(() => { i = (i+1) % phrases.length; lt.textContent = phrases[i]; }, 2500);
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lastData)
+    });
+    const startData = await res.json();
+    const reqId = startData.req_id;
+    // Poll
+    while(true) {
+      await new Promise(r => setTimeout(r, 1200));
+      const poll = await fetch('/api/status/' + reqId).then(r => r.json());
+      if(poll.status === 'completed') {
+        clearInterval(interval);
+        document.getElementById('loading-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        document.getElementById('result-text').textContent = poll.result;
+        break;
+      } else if(poll.status === 'error') {
+        clearInterval(interval);
+        document.getElementById('loading-area').style.display = 'none';
+        document.getElementById('form-area').style.display = 'block';
+        alert('Errore: ' + poll.message);
+        break;
+      }
+    }
+  } catch(e) {
+    clearInterval(interval);
+    document.getElementById('loading-area').style.display = 'none';
+    document.getElementById('form-area').style.display = 'block';
+    alert('Errore di rete. Controlla che il server sia attivo.');
+  }
+  const me = await fetch('/api/me').then(r => r.json());
+  if(me.logged_in) document.getElementById('save-btn').style.display = 'inline-flex';
+});
+// Retry
+document.getElementById('retry-btn').addEventListener('click', () => {
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('form-area').style.display = 'block';
+});
+// Copy
+document.getElementById('copy-btn').addEventListener('click', async () => {
+  const text = document.getElementById('result-text').textContent;
+  await navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = '✅ Copiato!';
+  setTimeout(() => btn.textContent = '📋 Copia', 2000);
+});
+// Save
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const text = document.getElementById('result-text').textContent;
+  await fetch('/api/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tool:'decisore', contenuto: text })
+  });
+  const s = document.getElementById('save-msg');
+  s.textContent = '✅ Salvato nel tuo profilo!';
+  setTimeout(() => s.textContent = '', 3000);
+});
+</script>
+<script src="/assets/navbar-user.js"></script>
+<script src="/assets/chat-widget.js"></script>
+</body>
+</html>

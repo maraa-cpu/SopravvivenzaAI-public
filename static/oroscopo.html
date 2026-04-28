@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Oroscopo Drammatico — SopravvivenzaAI</title>
+  <meta name="description" content="Il tuo oroscopo completamente inventato, surreale e solenne. Profezie impossibili narrate con la serietà di un astrologo pazzo.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="page-wrapper">
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">⚡ SopravvivenzaAI</a>
+      <div id="nav-user-area"></div>
+    </div>
+  </nav>
+  <main class="container">
+    <div class="page-header">
+      <span class="badge badge-amber">🪐 Giudizio Cosmico</span>
+      <h1>Le stelle ti osservano<br><span class="grad-amber">e sono deluse.</span></h1>
+      <p>L'unico oroscopo che non ti indora la pillola. Verità scomode, analisi passivo-aggressive e previsioni brutalmente ciniche sul tuo destino.</p>
+    </div>
+    <div class="glass-panel" id="form-area">
+      <div class="form-group">
+        <label class="form-label">📛 Il tuo nome</label>
+        <input type="text" class="field" id="nome-input" placeholder="Es: Marco, Giulia, Destino Ignoto...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">⭐ Segno Zodiacale</label>
+        <div class="chip-row" id="segno-group" style="--chip-active:var(--amber);--chip-glow:rgba(245,158,11,.3);">
+          <button class="chip active" data-value="Ariete">♈ Ariete</button>
+          <button class="chip" data-value="Toro">♉ Toro</button>
+          <button class="chip" data-value="Gemelli">♊ Gemelli</button>
+          <button class="chip" data-value="Cancro">♋ Cancro</button>
+          <button class="chip" data-value="Leone">♌ Leone</button>
+          <button class="chip" data-value="Vergine">♍ Vergine</button>
+          <button class="chip" data-value="Bilancia">♎ Bilancia</button>
+          <button class="chip" data-value="Scorpione">♏ Scorpione</button>
+          <button class="chip" data-value="Sagittario">♐ Sagittario</button>
+          <button class="chip" data-value="Capricorno">♑ Capricorno</button>
+          <button class="chip" data-value="Acquario">♒ Acquario</button>
+          <button class="chip" data-value="Pesci">♓ Pesci</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">😶 Come ti sei svegliato stamattina?</label>
+        <div class="chip-row" id="umore-group" style="--chip-active:var(--amber);--chip-glow:rgba(245,158,11,.3);">
+          <button class="chip active" data-value="catastrofico">💀 Catastrofico</button>
+          <button class="chip" data-value="apatico">😑 Apatico</button>
+          <button class="chip" data-value="ottimista senza motivo">😁 Ottimista</button>
+          <button class="chip" data-value="nervoso come una molla">😬 Nervoso</button>
+          <button class="chip" data-value="romantico">💕 Romantico</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn btn-amber" id="generate-btn">💀 Affronta la Verità</button>
+      </div>
+    </div>
+    <div class="loading-area" id="loading-area">
+      <div class="spinner amber"></div>
+      <p class="loading-text amber" id="loading-text">Consultando le stelle...</p>
+    </div>
+    <div class="result-area" id="result-area">
+      <div class="glass-panel">
+        <div class="result-header" style="color:var(--amber);">🪐 La Dura Verità Cosmica</div>
+        <div class="result-box" id="result-text"></div>
+        <div class="result-actions">
+          <button class="btn btn-amber" id="copy-btn">📋 Condividi la Profezia</button>
+          <button class="btn btn-ghost" id="save-btn" style="display:none;">💾 Salva</button>
+          <button class="btn btn-ghost" id="retry-btn">🔄 Nuova Profezia</button>
+        </div>
+        <p id="save-msg" style="color:var(--green);font-size:.85rem;text-align:center;min-height:18px;margin-top:8px;"></p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">⚡ SopravvivenzaAI</span>
+        <ul class="footer-links">
+          <li><a href="/">← Torna alla Home</a></li>
+          <li><a href="/profilo">Il tuo Profilo</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">Powered by Google Gemini · I contenuti generati sono satirici e non costituiscono consigli reali.</p>
+    </div>
+  </footer>
+</div>
+<script type="module">
+import { setupChips, generate, setupCopyBtn, setupRetryBtn } from '/assets/shared.js';
+const segno = setupChips('segno-group');
+const umore = setupChips('umore-group');
+const phrases = [
+  "Le stelle stanno giudicando le tue scelte di vita...",
+  "Saturno ci tiene a precisare che non è colpa sua se sei così...",
+  "Caricando verità astronomicamente scomode...",
+  "Le galassie ridono alle tue spalle...",
+  "Evocando l'amara realtà astrologica...",
+];
+document.getElementById('generate-btn').addEventListener('click', async () => {
+  const nome = document.getElementById('nome-input').value.trim() || 'Anima inquieta';
+  generate(
+    { tool:'oroscopo', nome, segno: segno.getValue(), umore: umore.getValue() },
+    { spinnerClass:'amber', textClass:'amber', phrases }
+  );
+  const me = await fetch('/api/me').then(r=>r.json());
+  if(me.logged_in) document.getElementById('save-btn').style.display = 'inline-flex';
+});
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const text = document.getElementById('result-text').textContent;
+  await fetch('/api/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tool:'oroscopo', contenuto: text })
+  });
+  const s = document.getElementById('save-msg');
+  s.textContent = '✅ Salvata nel tuo profilo!';
+  setTimeout(() => s.textContent = '', 3000);
+});
+setupCopyBtn('copy-btn', 'result-text');
+setupRetryBtn('retry-btn');
+</script>
+<script src="/assets/navbar-user.js"></script>
+<script src="/assets/chat-widget.js"></script>
+</body>
+</html>

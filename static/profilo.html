@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Il mio Profilo — SopravvivenzaAI</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="page-wrapper">
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">⚡ SopravvivenzaAI</a>
+      <div id="nav-user-area"></div>
+    </div>
+  </nav>
+  <main class="container">
+    <div class="profile-grid">
+      <div>
+        <div class="ceo-card" style="margin-bottom:18px;">
+          <div class="profile-avatar" id="avatar-initials">?</div>
+          <div class="profile-name" id="profile-name">Caricamento...</div>
+          <div class="profile-email" id="profile-email"></div>
+          <div class="profile-since" id="profile-since"></div>
+          <a href="/esci" class="btn btn-ghost" style="margin-top:18px;width:100%;padding:10px;font-size:.88rem;">🚪 Esci</a>
+        </div>
+        <div class="ceo-card">
+          <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px;color:#fff;">⚙️ Le mie Preferenze</h3>
+          <p class="form-label" style="font-size:.82rem;margin-bottom:8px;">Intolleranze alimentari</p>
+          <div class="chip-row" id="intolleranze-chips" style="margin-bottom:16px;">
+            <button class="pref-chip" data-val="glutine">🌾 Glutine</button>
+            <button class="pref-chip" data-val="lattosio">🥛 Lattosio</button>
+            <button class="pref-chip" data-val="vegano">🌿 Vegano</button>
+            <button class="pref-chip" data-val="vegetariano">🥗 Vegetariano</button>
+            <button class="pref-chip" data-val="pesce">🐟 Pesce</button>
+          </div>
+          <p class="form-label" style="font-size:.82rem;margin-bottom:8px;">Cucine preferite</p>
+          <div class="chip-row" id="cucine-chips" style="margin-bottom:16px;">
+            <button class="pref-chip" data-val="italiana">🇮🇹 Italiana</button>
+            <button class="pref-chip" data-val="giapponese">🇯🇵 Giapponese</button>
+            <button class="pref-chip" data-val="pizza">🍕 Pizza</button>
+            <button class="pref-chip" data-val="asiatica">🥢 Asiatica</button>
+            <button class="pref-chip" data-val="americana">🍔 Americana</button>
+            <button class="pref-chip" data-val="messicana">🌮 Messicana</button>
+          </div>
+          <p class="form-label" style="font-size:.82rem;margin-bottom:8px;">Budget preferito</p>
+          <div class="chip-row" id="budget-chips" style="margin-bottom:16px;">
+            <button class="pref-chip" data-val="economico">💰 Economico</button>
+            <button class="pref-chip active" data-val="medio">💳 Medio</button>
+            <button class="pref-chip" data-val="alto">💎 Alto</button>
+          </div>
+          <button class="btn btn-primary btn-full" id="save-prefs-btn" style="font-size:.9rem;padding:12px;">💾 Salva Preferenze</button>
+          <p id="prefs-status" style="text-align:center;color:var(--green);font-size:.85rem;min-height:18px;margin-top:8px;"></p>
+        </div>
+      </div>
+      <div>
+        <div class="ceo-card">
+          <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px;color:#fff;">
+            💾 Risposte Salvate
+            <span id="saved-count" style="background:var(--cyan-dim);color:var(--cyan);border-radius:var(--r-pill);padding:2px 10px;font-size:.75rem;">0</span>
+          </h3>
+          <div id="saved-list">
+            <div style="color:var(--text-muted);text-align:center;padding:24px;font-style:italic;font-size:.9rem;" id="saved-empty">
+              Non hai ancora salvato nessuna risposta.<br>
+              Generane una e clicca sul pulsante 💾!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">⚡ SopravvivenzaAI</span>
+        <ul class="footer-links">
+          <li><a href="/">← Torna alla Home</a></li>
+          <li><a href="/esci">Esci dall'account</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">Powered by Google Gemini · I tuoi dati sono conservati in locale e non vengono condivisi.</p>
+    </div>
+  </footer>
+</div>
+<script>
+// ── LOAD USER DATA ──
+fetch('/api/me').then(r=>r.json()).then(u => {
+  if(!u.logged_in) { window.location.href='/accedi'; return; }
+  const initials = u.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials;
+  document.getElementById('profile-name').textContent = u.name;
+  document.getElementById('profile-email').textContent = u.email;
+  document.getElementById('nav-user-area').innerHTML = `<a href="/profilo" class="nav-user"><span class="nav-user-dot"></span>${u.name}</a>`;
+  // ── Preferences ──
+  const prefs = u.prefs || {};
+  const intolleranze = (prefs.intolleranze || '').split(',').filter(Boolean);
+  const cucine       = (prefs.cucine       || '').split(',').filter(Boolean);
+  const budget       = prefs.budget || 'medio';
+  document.querySelectorAll('#intolleranze-chips .pref-chip').forEach(c => {
+    if(intolleranze.includes(c.dataset.val)) c.classList.add('active');
+    c.addEventListener('click', () => c.classList.toggle('active'));
+  });
+  document.querySelectorAll('#cucine-chips .pref-chip').forEach(c => {
+    if(cucine.includes(c.dataset.val)) c.classList.add('active');
+    c.addEventListener('click', () => c.classList.toggle('active'));
+  });
+  document.querySelectorAll('#budget-chips .pref-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.val === budget);
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#budget-chips .pref-chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+});
+// ── SAVE PREFS ──
+document.getElementById('save-prefs-btn').addEventListener('click', async () => {
+  const intolleranze = [...document.querySelectorAll('#intolleranze-chips .pref-chip.active')].map(c=>c.dataset.val).join(',');
+  const cucine       = [...document.querySelectorAll('#cucine-chips .pref-chip.active')].map(c=>c.dataset.val).join(',');
+  const budget       = document.querySelector('#budget-chips .pref-chip.active')?.dataset.val || 'medio';
+  await fetch('/api/preferences', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ intolleranze, cucine, budget })
+  });
+  const s = document.getElementById('prefs-status');
+  s.textContent = '✅ Preferenze salvate!';
+  setTimeout(() => s.textContent = '', 3000);
+});
+// ── SAVED OUTPUTS ──
+const toolColors = {
+  scuse:    {bg:'var(--cyan-dim)',    color:'var(--cyan)'},
+  email:    {bg:'var(--violet-dim)',  color:'var(--violet)'},
+  decisore: {bg:'var(--pink-dim)',    color:'var(--pink)'},
+  oroscopo: {bg:'var(--amber-dim)',   color:'var(--amber)'},
+};
+const toolLabels = { scuse:'🎭 Scuse', email:'📧 Email', decisore:'🍕 Cena', oroscopo:'🔮 Oroscopo' };
+const loadSaved = async () => {
+  const r = await fetch('/api/saved');
+  const d = await r.json();
+  const list = document.getElementById('saved-list');
+  const empty = document.getElementById('saved-empty');
+  document.getElementById('saved-count').textContent = d.saved.length;
+  if(d.saved.length === 0) { if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  list.innerHTML = '';
+  d.saved.forEach(s => {
+    const c = toolColors[s.tool] || {bg:'var(--glass)',color:'var(--text-muted)'};
+    const date = s.saved_at ? new Date(s.saved_at).toLocaleDateString('it-IT') : '';
+    const el = document.createElement('div');
+    el.className = 'saved-card';
+    el.innerHTML = `
+      <div class="saved-card-header">
+        <span class="saved-tool-badge" style="background:${c.bg};color:${c.color};">${toolLabels[s.tool]||s.tool}</span>
+        <span style="font-size:.75rem;color:var(--text-muted);">${date}</span>
+      </div>
+      <div class="saved-text">${s.contenuto.replace(/</g,'&lt;').substring(0,200)}</div>
+      <div class="saved-actions">
+        <button class="btn btn-ghost btn-xs" onclick="copyOutput(${s.id}, this, \`${s.contenuto.replace(/`/g,'\\`')}\`)">📋 Copia</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteOutput(${s.id}, this)">🗑 Elimina</button>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+};
+window.copyOutput = async (id, btn, text) => {
+  await navigator.clipboard.writeText(text);
+  btn.textContent = '✅ Copiato!';
+  setTimeout(() => btn.textContent = '📋 Copia', 2000);
+};
+window.deleteOutput = async (id, btn) => {
+  await fetch(`/api/saved/${id}`, {method:'DELETE'});
+  btn.closest('.saved-card').remove();
+  const count = document.querySelectorAll('.saved-card').length;
+  document.getElementById('saved-count').textContent = count;
+  if(count === 0) document.getElementById('saved-empty').style.display='block';
+};
+loadSaved();
+</script>
+</body>
+</html>

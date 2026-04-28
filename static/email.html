@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Traduttore di Email Aziendali — SopravvivenzaAI</title>
+  <meta name="description" content="Trasforma il tuo sfogo in un'email professionale, o scopri cosa pensano davvero i tuoi colleghi. Powered by Google Gemini.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="page-wrapper">
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">⚡ SopravvivenzaAI</a>
+      <div id="nav-user-area"></div>
+    </div>
+  </nav>
+  <main class="container">
+    <div class="page-header">
+      <span class="badge badge-violet">📧 Traduttore Email</span>
+      <h1>Il linguaggio aziendale,<br><span class="grad-violet">finalmente svelato.</span></h1>
+      <p>Trasforma la tua rabbia in una email elegante e passivo-aggressiva — oppure decifra quello che il tuo collega ha scritto tra le righe.</p>
+    </div>
+    <div class="glass-panel" id="form-area">
+      <div class="form-group">
+        <label class="form-label">🔁 Cosa vuoi fare?</label>
+        <div class="chip-row" id="dir-group" style="--chip-active:var(--violet);--chip-glow:rgba(168,85,247,.3);">
+          <button class="chip active" data-value="formal">✍️ Sfogo → Email Professionale</button>
+          <button class="chip" data-value="decode">🔍 Decifra un'Email Ricevuta</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="ta-label">✍️ Scrivi il tuo sfogo qui:</label>
+        <textarea class="field" id="email-input" rows="5"
+          placeholder="Es: Marco sei uno scansafatiche e non hai fatto niente di quello che ti avevo chiesto..."></textarea>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn btn-violet" id="generate-btn">🪄 Elabora Adesso</button>
+      </div>
+    </div>
+    <div class="loading-area" id="loading-area">
+      <div class="spinner violet"></div>
+      <p class="loading-text violet" id="loading-text">Analizzando la rabbia latente...</p>
+    </div>
+    <div class="result-area" id="result-area">
+      <div class="glass-panel">
+        <div class="result-header" style="color:var(--violet);">✨ Traduzione Completata</div>
+        <div class="result-box" id="result-text"></div>
+        <div class="result-actions">
+          <button class="btn btn-violet" id="copy-btn">📋 Copia Testo</button>
+          <button class="btn btn-ghost" id="save-btn" style="display:none;">💾 Salva</button>
+          <button class="btn btn-ghost" id="retry-btn">🔄 Rigenera</button>
+        </div>
+        <p id="save-msg" style="color:var(--green);font-size:.85rem;text-align:center;min-height:18px;margin-top:8px;"></p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">⚡ SopravvivenzaAI</span>
+        <ul class="footer-links">
+          <li><a href="/">← Torna alla Home</a></li>
+          <li><a href="/profilo">Il tuo Profilo</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">Powered by Google Gemini · I contenuti generati sono satirici e non costituiscono consigli reali.</p>
+    </div>
+  </footer>
+</div>
+<script type="module">
+import { setupChips, generate, setupCopyBtn, setupRetryBtn } from '/assets/shared.js';
+const direction = setupChips('dir-group');
+const ta = document.getElementById('email-input');
+const label = document.getElementById('ta-label');
+document.querySelectorAll('#dir-group .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    if (c.dataset.value === 'formal') {
+      label.textContent = '✍️ Scrivi il tuo sfogo qui:';
+      ta.placeholder = 'Es: Marco sei uno scansafatiche e non hai fatto niente di quello che ti avevo chiesto...';
+    } else {
+      label.textContent = '✍️ Incolla l\'email formale da decodificare:';
+      ta.placeholder = 'Es: Come da accordi, mi permetto di portare alla sua attenzione alcune inefficienze riscontrate nel processo...';
+    }
+  });
+});
+const phrases = [
+  "Analizzando la rabbia latente...",
+  "Applicando il filtro passivo-aggressivo™...",
+  "Convertendo le emozioni in linguaggio HR...",
+  "Decodificando il linguaggio aziendale...",
+  "Censurando le parolacce... quasi finite...",
+];
+document.getElementById('generate-btn').addEventListener('click', async () => {
+  const text = ta.value.trim();
+  if (!text) { ta.style.borderColor='var(--red)'; ta.focus(); setTimeout(()=>ta.style.borderColor='',2000); return; }
+  generate(
+    { tool:'email', text, direction: direction.getValue() },
+    { spinnerClass: 'violet', textClass: 'violet', phrases }
+  );
+  const me = await fetch('/api/me').then(r=>r.json());
+  if(me.logged_in) document.getElementById('save-btn').style.display = 'inline-flex';
+});
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const text = document.getElementById('result-text').textContent;
+  await fetch('/api/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tool:'email', contenuto: text })
+  });
+  const s = document.getElementById('save-msg');
+  s.textContent = '✅ Salvata nel tuo profilo!';
+  setTimeout(() => s.textContent = '', 3000);
+});
+setupCopyBtn('copy-btn', 'result-text');
+setupRetryBtn('retry-btn');
+</script>
+<script src="/assets/navbar-user.js"></script>
+<script src="/assets/chat-widget.js"></script>
+</body>
+</html>

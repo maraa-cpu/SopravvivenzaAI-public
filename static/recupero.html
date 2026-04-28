@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recupero Password — SopravvivenzaAI</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="ambient"><span></span><span></span><span></span></div>
+<div class="auth-wrapper">
+  <div class="auth-box">
+    <div class="auth-icon">📧</div>
+    <h2>Recupera Password</h2>
+    <p class="auth-sub">Inserisci il tuo indirizzo email. Se è registrato, ti invieremo un link per creare una nuova password.</p>
+    <input class="auth-input" type="email" id="email" placeholder="La tua email" autocomplete="email">
+    <button class="btn btn-primary btn-full" id="recupero-btn">Invia Link di Ripristino</button>
+    <p class="auth-error" id="err"></p>
+    <p id="success-msg" style="color:var(--green);text-align:center;font-size:.9rem;min-height:20px;margin-top:8px;"></p>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="/accedi" style="color:var(--text-muted);font-size:.86rem;">← Torna al Login</a>
+    </div>
+  </div>
+</div>
+<script>
+  const btn = document.getElementById('recupero-btn');
+  const err = document.getElementById('err');
+  const succ = document.getElementById('success-msg');
+  const go = async () => {
+    err.textContent = '';
+    succ.textContent = '';
+    btn.textContent = 'Invio in corso...';
+    btn.disabled = true;
+    const email = document.getElementById('email').value.trim();
+    if(!email) {
+      err.textContent = 'Inserisci un indirizzo email.';
+      btn.textContent = 'Invia Link di Ripristino';
+      btn.disabled = false;
+      return;
+    }
+    try {
+      const r = await fetch('/recupero', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email })
+      });
+      const d = await r.json();
+      if(r.ok) {
+        succ.textContent = '✅ ' + d.message;
+        document.getElementById('email').value = '';
+      } else {
+        err.textContent = '❌ ' + (d.error || 'Errore di rete');
+      }
+    } catch(e) {
+      err.textContent = '❌ Errore durante la richiesta.';
+    }
+    btn.textContent = 'Invia Link di Ripristino';
+    btn.disabled = false;
+  };
+  btn.addEventListener('click', go);
+  document.getElementById('email').addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+</script>
+</body>
+</html>
