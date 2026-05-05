@@ -45,11 +45,6 @@ Per il deploy, imposta le variabili d'ambiente:
 | `SECRET_KEY` | Chiave segreta Flask (obbligatoria in produzione) |
 | `GEMINI_API_KEY` | Chiave Google Gemini (opzionale, configurabile dalla dashboard) |
 
-## Deploy
-
-Compatibile con **Render** (consigliato, gratuito) e **Railway**.
-
-Vedi la [guida al deploy](#) per istruzioni dettagliate.
 
 ---
 
